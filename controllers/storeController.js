@@ -14,7 +14,7 @@ const multerOptions = {
       next({ message: `That filetype isn't allowed!`}, false);
     }
   }
-}
+};
 
 exports.homePage = (req, res) => {
   res.render('index', { title: 'hello' });
@@ -54,7 +54,7 @@ exports.getStores = async (req, res) => {
   // 1. Query the database for a list of all stores
   const stores = await Store.find();
   res.render('stores', { title: 'Stores', stores });
-}
+};
 
 exports.editStore = async (req, res) => {
   // 1. Find the store given the ID
@@ -63,7 +63,7 @@ exports.editStore = async (req, res) => {
   // ToDo
   // 3. Render out the edit form so the user can update their store
   res.render('editStore', { title: `Edit ${store.name}`, store });
-}
+};
 
 exports.updateStore = async (req, res) => {
   // set location data to be a point
@@ -76,10 +76,19 @@ exports.updateStore = async (req, res) => {
   req.flash('success', `Successfully updated <strong>${store.name}</strong>. <a href="/stores/${store.slug}">View Store →</a>`)
   res.redirect(`/stores/${store._id}/edit`);
   // Redirect them to the store and tell them it worked
-}
+};
 
 exports.getStoreBySlug = async (req, res, next) => {
   const store = await Store.findOne({ slug: req.params.slug });
   if (!store) return next();
   res.render('store', { store, title: store.name });
 }
+
+exports.getStoresByTag = async (req, res) => {
+  const tag = req.params.tag;
+  const tagQuery = tag || { $exists: true };
+  const tagsPromise = Store.getTagsList();
+  const storesPromise = Store.find({ tags: tagQuery });
+  const [tags, stores] = await Promise.all([tagsPromise, storesPromise]);
+  res.render('tag', { tags, tag, title: 'Tags', stores });
+};
